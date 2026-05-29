@@ -27,9 +27,10 @@ function hijriDate(d) {
   try {
     const dt = d || new Date();
     const y = dt.getFullYear(), m = dt.getMonth() + 1, day = dt.getDate();
-    const jd = Math.floor((1461 * (y + 4800 + Math.floor((m - 14) / 12))) / 4)
-             + Math.floor((367 * (m - 2 - 12 * Math.floor((m - 14) / 12))) / 12)
-             - Math.floor((3 * Math.floor((y + 4900 + Math.floor((m - 14) / 12)) / 100)) / 4)
+    const t = Math.trunc((m - 14) / 12);
+    const jd = Math.floor((1461 * (y + 4800 + t)) / 4)
+             + Math.floor((367 * (m - 2 - 12 * t)) / 12)
+             - Math.floor((3 * Math.floor((y + 4900 + t) / 100)) / 4)
              + day - 32075;
     const l  = jd - 1948440 + 10632;
     const n  = Math.floor((l - 1) / 10631);

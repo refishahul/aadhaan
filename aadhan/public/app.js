@@ -38,10 +38,11 @@ function getHijriDate(date) {
   try {
     const d = date || new Date();
     const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
-    // Julian Day Number (Gregorian)
-    const jd = Math.floor((1461 * (y + 4800 + Math.floor((m - 14) / 12))) / 4)
-             + Math.floor((367 * (m - 2 - 12 * Math.floor((m - 14) / 12))) / 12)
-             - Math.floor((3 * Math.floor((y + 4900 + Math.floor((m - 14) / 12)) / 100)) / 4)
+    // Julian Day Number — must use Math.trunc not Math.floor for negative division
+    const t = Math.trunc((m - 14) / 12);
+    const jd = Math.floor((1461 * (y + 4800 + t)) / 4)
+             + Math.floor((367 * (m - 2 - 12 * t)) / 12)
+             - Math.floor((3 * Math.floor((y + 4900 + t) / 100)) / 4)
              + day - 32075;
     // Hijri conversion (Umm al-Qura approximation via JD)
     const l  = jd - 1948440 + 10632;
