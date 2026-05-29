@@ -40,9 +40,27 @@ app.get('/api/times', async (req, res) => {
   }
 });
 
+async function backfillCity() {
+  const { zipToCoords } = require('./prayerTimes');
+  const getSetting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || '';
+  const setSetting = (k, v) => db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(k, String(v));
+  const zip = getSetting('zip_code');
+  const city = getSetting('city_display');
+  if (zip && !city) {
+    try {
+      const coords = await zipToCoords(zip);
+      setSetting('city_display', coords.display || '');
+      console.log(`[server] City resolved: ${coords.display}`);
+    } catch (e) {
+      console.warn('[server] Could not resolve city for ZIP:', e.message);
+    }
+  }
+}
+
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`[server] Adhan Pi running at http://0.0.0.0:${PORT}`);
   startDiscovery();
   startMidnightReset();
+  await backfillCity();
   await rescheduleAll();
 });
