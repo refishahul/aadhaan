@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adhan Pi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="logo-icon">☽</div>
+        <div class="logo-text">
+          <span class="app-name">Adhan Pi</span>
+          <span class="app-tagline">Prayer Scheduler</span>
+        </div>
+      </div>
+      <nav>
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="prayers">Prayers</button>
+        <button class="tab-btn" data-tab="audio">Audio</button>
+        <button class="tab-btn" data-tab="settings">Settings</button>
+        <button class="tab-btn" data-tab="cast">Cast</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── Dashboard ─────────────────────────────────────────────── -->
+    <section id="tab-dashboard" class="tab active">
+
+      <div class="card next-prayer-card">
+        <div class="card-label">Next Prayer</div>
+        <div id="next-prayer-name">Loading…</div>
+        <div id="next-prayer-time"></div>
+        <div class="countdown" id="countdown"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">🕌</div>
+          <h2>Today's Prayer Times</h2>
+        </div>
+        <div class="times-grid" id="times-grid"></div>
+      </div>
+
+    </section>
+
+    <!-- ── Prayers ────────────────────────────────────────────────── -->
+    <section id="tab-prayers" class="tab">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">⏰</div>
+          <h2>Prayer Settings</h2>
+        </div>
+        <div id="prayer-list"></div>
+      </div>
+    </section>
+
+    <!-- ── Audio ──────────────────────────────────────────────────── -->
+    <section id="tab-audio" class="tab">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">♪</div>
+          <h2>Audio Library</h2>
+        </div>
+
+        <div class="section-label">Presets</div>
+        <div id="preset-list"></div>
+
+        <div class="section-label">My Uploads</div>
+        <div id="upload-list"></div>
+
+        <div class="upload-zone">
+          <label for="audio-upload">Upload an Adhan audio file (MP3, WAV, OGG, M4A · max 20 MB)</label>
+          <input type="file" id="audio-upload" accept=".mp3,.wav,.ogg,.m4a" />
+          <br /><br />
+          <button class="btn-primary" id="upload-btn">Upload</button>
+          <div id="upload-status" class="status-msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Settings ───────────────────────────────────────────────── -->
+    <section id="tab-settings" class="tab">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">⚙</div>
+          <h2>App Settings</h2>
+        </div>
+        <form id="settings-form">
+          <div class="form-group">
+            <label>ZIP Code</label>
+            <input type="text" name="zip_code" maxlength="10" placeholder="e.g. 10001" />
+          </div>
+          <div class="form-group">
+            <label>Calculation Method</label>
+            <select name="calc_method"></select>
+          </div>
+          <div class="form-group">
+            <label>Asr Madhab</label>
+            <select name="asr_madhab">
+              <option value="Shafi">Shafi (Standard)</option>
+              <option value="Hanafi">Hanafi (Later time)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Timezone</label>
+            <input type="text" name="timezone" placeholder="e.g. America/New_York" />
+          </div>
+          <button type="submit" class="btn-primary">Save Settings</button>
+          <div id="settings-status" class="status-msg"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ── Cast ───────────────────────────────────────────────────── -->
+    <section id="tab-cast" class="tab">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">📡</div>
+          <h2>Google Cast</h2>
+        </div>
+
+        <div class="section-label">Selected Device</div>
+        <div id="selected-device-info" class="selected-device-banner empty">No device selected</div>
+
+        <div class="section-label">Available Devices</div>
+        <div id="device-list"><em style="color:var(--text-muted);font-size:.85rem">Scanning network…</em></div>
+
+        <br />
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+          <button class="btn-secondary" id="refresh-devices">↻ Refresh</button>
+          <button class="btn-primary" id="test-cast-btn" disabled>▶ Test Cast</button>
+        </div>
+        <div id="cast-status" class="status-msg"></div>
+      </div>
+    </section>
+
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
