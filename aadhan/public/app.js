@@ -286,5 +286,12 @@ document.getElementById('test-cast-btn').addEventListener('click', async () => {
   status.className = res.ok ? 'status-msg' : 'status-msg error';
 });
 
+// ── PWA Service Worker ────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadDashboard();
