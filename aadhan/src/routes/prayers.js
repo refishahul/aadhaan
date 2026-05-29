@@ -5,7 +5,9 @@ const { getTodayTimes } = require('../prayerTimes');
 const { rescheduleAll } = require('../scheduler');
 
 router.get('/', async (req, res) => {
-  const rows = db.prepare('SELECT * FROM prayers ORDER BY name').all();
+  const ORDER = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  const rows = db.prepare('SELECT * FROM prayers').all()
+    .sort((a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name));
   try {
     const times = await getTodayTimes();
     const result = rows.map((p) => ({
