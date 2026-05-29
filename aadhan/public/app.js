@@ -30,7 +30,7 @@ function timeUntilHMS(isoStr) {
 
 function getHijriDate(date) {
   try {
-    const hijri = new Intl.DateTimeFormat('en-u-ca-islamic', {
+    const hijri = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(date || new Date());
     return hijri;

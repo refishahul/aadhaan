@@ -19,7 +19,7 @@ function hms(iso) {
 
 function hijriDate(d) {
   try {
-    return new Intl.DateTimeFormat('en-u-ca-islamic', {
+    return new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(d || new Date());
   } catch { return ''; }
