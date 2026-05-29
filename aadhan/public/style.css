@@ -596,13 +596,58 @@ form { display: flex; flex-direction: column; gap: 1.1rem; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .times-grid { grid-template-columns: repeat(3, 1fr); }
-  .prayer-row { flex-direction: column; align-items: flex-start; }
-  .header-inner { gap: 0.5rem; }
-  nav { margin-left: 0; }
-  .tab-btn { padding: 0.9rem 0.8rem; font-size: 0.8rem; }
+  /* Header: stack logo + scrollable nav */
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+  .logo-area {
+    padding: 0.75rem 1rem;
+  }
+  nav {
+    margin-left: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    display: flex;
+    flex-wrap: nowrap;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Dashboard — all 5 prayers in one scrollable row */
+  .times-grid {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.5rem;
+  }
+  .times-grid::-webkit-scrollbar { display: none; }
+  .time-cell {
+    flex: 1 0 0;
+    min-width: 58px;
+    padding: 0.7rem 0.25rem;
+  }
+
+  /* Prayers */
+  .prayer-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .prayer-row-controls { width: 100%; }
+
+  /* Cards */
+  .card { padding: 1.1rem; }
+  main { padding: 1rem; }
 }
 
 @media (max-width: 400px) {
-  .times-grid { grid-template-columns: repeat(2, 1fr); }
+  .times-grid { grid-template-columns: repeat(3, 1fr); }
+  .tab-btn { padding: 0.7rem 0.85rem; font-size: 0.78rem; }
 }
