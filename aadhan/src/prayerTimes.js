@@ -37,9 +37,8 @@ async function getTodayTimes(date) {
   const { lat, lng } = await zipToCoords(zip);
   const coords = new adhan.Coordinates(lat, lng);
   const d = date || new Date();
-  const prayerDate = new adhan.DateComponents(d.getFullYear(), d.getMonth() + 1, d.getDate());
   const params = buildParams();
-  const times = new adhan.PrayerTimes(coords, prayerDate, params);
+  const times = new adhan.PrayerTimes(coords, d, params);
   return {
     Fajr:    times.fajr,
     Dhuhr:   times.dhuhr,
