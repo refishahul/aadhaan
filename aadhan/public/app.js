@@ -97,9 +97,9 @@ function renderTimesGrid(times, nextOverride) {
     : ORDER.find((p) => times[p] && new Date(times[p]) > now);
   const grid = document.getElementById('times-grid');
   grid.innerHTML = ORDER.map((p) => {
-    const past = times[p] && new Date(times[p]) <= now;
     const isNext = p === next;
-    const cls = past ? 'past' : isNext ? 'next-prayer' : '';
+    const past = !isNext && times[p] && new Date(times[p]) <= now;
+    const cls = isNext ? 'next-prayer' : past ? 'past' : '';
     return `
       <div class="time-cell ${cls}">
         <div class="prayer-label">${p}</div>
