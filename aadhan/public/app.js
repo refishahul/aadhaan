@@ -44,9 +44,22 @@ async function loadDashboard() {
   clearInterval(countdownTimer);
   const data = await api('GET', '/times').catch(() => ({}));
   prayerTimesCache = data;
+  renderLocation(data);
   renderTimesGrid(data);
   tickCountdown(data);
   countdownTimer = setInterval(() => tickCountdown(prayerTimesCache), 1000);
+}
+
+function renderLocation(data) {
+  const el = document.getElementById('location-display');
+  if (!el) return;
+  if (data.city) {
+    el.innerHTML = `<span class="loc-icon">📍</span><span>${data.city}</span>${data.zip ? `<span class="loc-zip">${data.zip}</span>` : ''}`;
+  } else if (data.zip) {
+    el.innerHTML = `<span class="loc-icon">📍</span><span class="loc-zip">${data.zip}</span>`;
+  } else {
+    el.innerHTML = `<span style="color:rgba(255,255,255,0.3);font-size:.75rem">Set your ZIP in Settings</span>`;
+  }
 }
 
 function renderTimesGrid(times) {

@@ -12,11 +12,21 @@ const METHOD_MAP = {
 };
 
 async function zipToCoords(zip) {
-  const url = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&country=US&format=json&limit=1`;
+  const url = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&country=US&format=json&limit=1&addressdetails=1`;
   const res = await fetch(url, { headers: { 'User-Agent': 'aadhan-pi/1.0' } });
   const data = await res.json();
   if (!data.length) throw new Error(`ZIP code ${zip} not found`);
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  const item = data[0];
+  const addr = item.address || {};
+  const city = addr.city || addr.town || addr.village || addr.county || item.display_name.split(',')[0];
+  const state = addr.state_code || addr.state || '';
+  return {
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lon),
+    city,
+    state,
+    display: state ? `${city}, ${state}` : city,
+  };
 }
 
 function getSetting(key) {

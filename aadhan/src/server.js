@@ -26,9 +26,13 @@ app.use('/api/cast', require('./routes/cast'));
 // Prayer times endpoint
 app.get('/api/times', async (req, res) => {
   const { getTodayTimes } = require('./prayerTimes');
+  const getSetting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || '';
   try {
     const times = await getTodayTimes();
-    const result = {};
+    const result = {
+      city: getSetting('city_display'),
+      zip:  getSetting('zip_code'),
+    };
     for (const [k, v] of Object.entries(times)) result[k] = v.toISOString();
     res.json(result);
   } catch (e) {

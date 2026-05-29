@@ -13,7 +13,7 @@ function setSetting(key, value) {
 }
 
 router.get('/', (req, res) => {
-  const keys = ['zip_code', 'calc_method', 'asr_madhab', 'cast_device', 'timezone'];
+  const keys = ['zip_code', 'calc_method', 'asr_madhab', 'cast_device', 'timezone', 'city_display'];
   const result = {};
   for (const k of keys) result[k] = getSetting(k) || '';
   result.available_methods = Object.keys(METHOD_MAP);
@@ -25,8 +25,9 @@ router.post('/', async (req, res) => {
 
   if (zip_code) {
     try {
-      await zipToCoords(zip_code);
+      const coords = await zipToCoords(zip_code);
       setSetting('zip_code', zip_code);
+      setSetting('city_display', coords.display || '');
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }

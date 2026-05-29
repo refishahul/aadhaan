@@ -200,6 +200,27 @@ main {
   background: rgba(255,255,255,0.04);
 }
 
+.location-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.04em;
+  min-height: 1.2rem;
+}
+
+.location-display .loc-icon { font-size: 0.85rem; }
+.location-display .loc-zip {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+}
+
 .next-prayer-card .card-label {
   font-size: 0.75rem;
   text-transform: uppercase;
