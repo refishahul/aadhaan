@@ -1,0 +1,191 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal-deep:  #0a3d3a;
+  --teal:       #0d5c57;
+  --teal-mid:   #0e7068;
+  --teal-light: #12918a;
+  --gold:       #c9a84c;
+  --gold-light: #e8c96a;
+  --cream:      #fdf8f0;
+  --white:      #ffffff;
+  --text-dark:  #1a2e2d;
+  --text-muted: #7a9b9a;
+  --border:     #ddeae9;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+.page {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  gap: 1.1rem;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.g-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.g-logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(10,61,58,0.18);
+  flex-shrink: 0;
+}
+
+.g-location {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.g-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.g-date .hijri {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* ── Next prayer card ────────────────────────────────────── */
+.next-card {
+  background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal-mid) 100%);
+  border-radius: 18px;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(10,61,58,0.22);
+}
+
+.next-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+
+.next-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 0.4rem;
+}
+
+.next-name {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.next-time {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.75);
+  margin-top: 0.25rem;
+}
+
+.next-countdown {
+  display: inline-block;
+  margin-top: 0.85rem;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 0.35rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  min-width: 130px;
+}
+
+/* ── Prayer times grid ───────────────────────────────────── */
+.times-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.1rem 1rem;
+  box-shadow: 0 2px 10px rgba(10,61,58,0.07);
+}
+
+.times-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.time-cell {
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 0.85rem 0.4rem;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.time-cell.next {
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+  box-shadow: 0 4px 14px rgba(13,112,104,0.3);
+  transform: translateY(-2px);
+}
+
+.time-cell.past { opacity: 0.38; }
+
+.prayer-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.prayer-time-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.time-cell.next .prayer-label { color: rgba(255,255,255,0.7); }
+.time-cell.next .prayer-time-val { color: #fff; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.g-footer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding-bottom: 0.5rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .next-name { font-size: 2.2rem; }
+  .times-grid { gap: 0.35rem; }
+  .time-cell { padding: 0.7rem 0.25rem; }
+  .prayer-time-val { font-size: 0.8rem; }
+}
