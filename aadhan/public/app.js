@@ -133,7 +133,7 @@ function tickCountdown(times) {
       const hms = fajrISO ? timeUntilHMS(fajrISO) : null;
       document.getElementById('countdown').textContent = hms || '—';
     });
-    renderTimesGrid(times, null);
+    renderTimesGrid(times, 'Fajr');
   }
 }
 
