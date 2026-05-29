@@ -1,6 +1,6 @@
 const Client = require('castv2-client').Client;
 const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
-const mdns = require('mdns');
+const Bonjour = require('bonjour-service');
 const os = require('os');
 
 let discoveredDevices = {};
@@ -17,20 +17,20 @@ function getLocalIP() {
 
 function startDiscovery() {
   try {
-    const browser = mdns.createBrowser(mdns.tcp('googlecast'));
-    browser.on('serviceUp', (service) => {
-      const name = service.txtRecord?.fn || service.name;
-      const host = service.addresses?.[0];
+    const bonjour = new Bonjour.Bonjour();
+    const browser = bonjour.find({ type: 'googlecast' });
+    browser.on('up', (service) => {
+      const name = service.txt?.fn || service.name;
+      const host = service.addresses?.[0] || service.host;
       const port = service.port;
       if (host) {
         discoveredDevices[name] = { name, host, port };
       }
     });
-    browser.on('serviceDown', (service) => {
-      const name = service.txtRecord?.fn || service.name;
+    browser.on('down', (service) => {
+      const name = service.txt?.fn || service.name;
       delete discoveredDevices[name];
     });
-    browser.start();
     console.log('[cast] mDNS discovery started');
   } catch (e) {
     console.warn('[cast] mDNS discovery unavailable:', e.message);
