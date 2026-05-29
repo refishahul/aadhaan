@@ -19,13 +19,30 @@ function fmt(isoStr) {
   return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function timeUntil(isoStr) {
+function timeUntilHMS(isoStr) {
   const diff = new Date(isoStr) - Date.now();
   if (diff <= 0) return null;
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function getHijriDate(date) {
+  try {
+    const hijri = new Intl.DateTimeFormat('en-u-ca-islamic', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).format(date || new Date());
+    return hijri;
+  } catch {
+    return '';
+  }
+}
+
+function getGregorianDate(date) {
+  return (date || new Date()).toLocaleDateString([], {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 }
 
 async function api(method, path, body) {
@@ -39,15 +56,26 @@ async function api(method, path, body) {
 const ORDER = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 let countdownTimer = null;
 let prayerTimesCache = null;
+let tomorrowFajrCache = null;
 
 async function loadDashboard() {
   clearInterval(countdownTimer);
   const data = await api('GET', '/times').catch(() => ({}));
   prayerTimesCache = data;
   renderLocation(data);
+  renderDate();
   renderTimesGrid(data);
   tickCountdown(data);
   countdownTimer = setInterval(() => tickCountdown(prayerTimesCache), 1000);
+}
+
+function renderDate() {
+  const el = document.getElementById('date-display');
+  if (!el) return;
+  const now = new Date();
+  const greg = getGregorianDate(now);
+  const hijri = getHijriDate(now);
+  el.innerHTML = `<span>${greg}</span>${hijri ? `<span class="hijri-date">(${hijri})</span>` : ''}`;
 }
 
 function renderLocation(data) {
@@ -62,9 +90,11 @@ function renderLocation(data) {
   }
 }
 
-function renderTimesGrid(times) {
+function renderTimesGrid(times, nextOverride) {
   const now = Date.now();
-  const next = ORDER.find((p) => times[p] && new Date(times[p]) > now);
+  const next = nextOverride !== undefined
+    ? nextOverride
+    : ORDER.find((p) => times[p] && new Date(times[p]) > now);
   const grid = document.getElementById('times-grid');
   grid.innerHTML = ORDER.map((p) => {
     const past = times[p] && new Date(times[p]) <= now;
@@ -78,6 +108,13 @@ function renderTimesGrid(times) {
   }).join('');
 }
 
+async function fetchTomorrowFajr() {
+  if (tomorrowFajrCache) return tomorrowFajrCache;
+  const data = await api('GET', '/times?date=tomorrow').catch(() => ({}));
+  tomorrowFajrCache = data.Fajr || null;
+  return tomorrowFajrCache;
+}
+
 function tickCountdown(times) {
   if (!times) return;
   const now = Date.now();
@@ -85,14 +122,19 @@ function tickCountdown(times) {
   if (next) {
     document.getElementById('next-prayer-name').textContent = next;
     document.getElementById('next-prayer-time').textContent = fmt(times[next]);
-    const remaining = timeUntil(times[next]);
-    document.getElementById('countdown').textContent = remaining ? `in ${remaining}` : 'Now!';
+    const hms = timeUntilHMS(times[next]);
+    document.getElementById('countdown').textContent = hms || 'Now!';
+    renderTimesGrid(times, next);
   } else {
-    document.getElementById('next-prayer-name').textContent = 'All done today';
-    document.getElementById('next-prayer-time').textContent = '';
-    document.getElementById('countdown').textContent = 'See you at Fajr ☽';
+    // All prayers done — show tomorrow's Fajr
+    fetchTomorrowFajr().then((fajrISO) => {
+      document.getElementById('next-prayer-name').textContent = 'Fajr';
+      document.getElementById('next-prayer-time').textContent = fajrISO ? fmt(fajrISO) + ' (tomorrow)' : '';
+      const hms = fajrISO ? timeUntilHMS(fajrISO) : null;
+      document.getElementById('countdown').textContent = hms || '—';
+    });
+    renderTimesGrid(times, null);
   }
-  renderTimesGrid(times);
 }
 
 // ── Prayers ───────────────────────────────────────────────────────────────────

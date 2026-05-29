@@ -28,7 +28,13 @@ app.get('/api/times', async (req, res) => {
   const { getTodayTimes } = require('./prayerTimes');
   const getSetting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || '';
   try {
-    const times = await getTodayTimes();
+    // Support ?date=tomorrow for post-Isha next-Fajr lookup
+    let date;
+    if (req.query.date === 'tomorrow') {
+      date = new Date();
+      date.setDate(date.getDate() + 1);
+    }
+    const times = await getTodayTimes(date);
     const result = {
       city: getSetting('city_display'),
       zip:  getSetting('zip_code'),
