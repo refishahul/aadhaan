@@ -58,8 +58,17 @@ let countdownTimer = null;
 let prayerTimesCache = null;
 let tomorrowFajrCache = null;
 
+let stopPollTimer = null;
+
+async function pollPlayingStatus() {
+  const { playing } = await api('GET', '/cast/status').catch(() => ({ playing: false }));
+  const wrap = document.getElementById('stop-btn-wrap');
+  if (wrap) wrap.style.display = playing ? 'block' : 'none';
+}
+
 async function loadDashboard() {
   clearInterval(countdownTimer);
+  clearInterval(stopPollTimer);
   const data = await api('GET', '/times').catch(() => ({}));
   prayerTimesCache = data;
   renderLocation(data);
@@ -67,7 +76,14 @@ async function loadDashboard() {
   renderTimesGrid(data);
   tickCountdown(data);
   countdownTimer = setInterval(() => tickCountdown(prayerTimesCache), 1000);
+  pollPlayingStatus();
+  stopPollTimer = setInterval(pollPlayingStatus, 3000);
 }
+
+document.getElementById('stop-adhan-btn').addEventListener('click', async () => {
+  await api('POST', '/cast/stop');
+  document.getElementById('stop-btn-wrap').style.display = 'none';
+});
 
 function renderDate() {
   const el = document.getElementById('date-display');
@@ -158,6 +174,7 @@ function buildPrayerRow(p) {
   const audioSelect = audioOptions.map((a) =>
     `<option value="${a.id}" ${p.audio_file === a.id ? 'selected' : ''}>${a.label}</option>`
   ).join('');
+  const vol = p.volume ?? 80;
   return `
   <div class="prayer-row ${p.enabled ? '' : 'disabled'}" data-name="${p.name}">
     <div class="prayer-row-left">
@@ -176,6 +193,11 @@ function buildPrayerRow(p) {
         <div class="control-label">Audio</div>
         <select class="pr-audio">${audioSelect}</select>
       </div>
+      <div class="volume-wrap">
+        <div class="control-label">Vol</div>
+        <input type="range" class="pr-volume" min="0" max="100" value="${vol}" />
+        <span class="vol-value">${vol}%</span>
+      </div>
       <div>
         <div class="control-label">Pre-alert (min)</div>
         <input type="number" class="pr-prealert" value="${p.pre_alert}" min="0" max="60" />
@@ -193,11 +215,16 @@ function attachPrayerRowEvents(row) {
     await api('PATCH', `/prayers/${name}`, {
       enabled: enabled ? 1 : 0,
       audio_file: row.querySelector('.pr-audio').value,
+      volume: parseInt(row.querySelector('.pr-volume').value) || 80,
       pre_alert: parseInt(row.querySelector('.pr-prealert').value) || 0,
     });
   };
+  const volSlider = row.querySelector('.pr-volume');
+  const volLabel  = row.querySelector('.vol-value');
+  volSlider.addEventListener('input', () => { volLabel.textContent = volSlider.value + '%'; });
   row.querySelector('.pr-enabled').addEventListener('change', save);
   row.querySelector('.pr-audio').addEventListener('change', save);
+  row.querySelector('.pr-volume').addEventListener('change', save);
   row.querySelector('.pr-prealert').addEventListener('change', save);
   row.querySelector('.play-btn').addEventListener('click', () =>
     api('POST', `/cast/play/${name}`)

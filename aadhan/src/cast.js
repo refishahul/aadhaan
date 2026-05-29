@@ -4,6 +4,9 @@ const Bonjour = require('bonjour-service');
 const os = require('os');
 
 let discoveredDevices = {};
+let activeClient = null;
+let activePlayer = null;
+let localPlaybackProcess = null;
 
 function getLocalIP() {
   const nets = os.networkInterfaces();
@@ -23,9 +26,7 @@ function startDiscovery() {
       const name = service.txt?.fn || service.name;
       const host = service.addresses?.[0] || service.host;
       const port = service.port;
-      if (host) {
-        discoveredDevices[name] = { name, host, port };
-      }
+      if (host) discoveredDevices[name] = { name, host, port };
     });
     browser.on('down', (service) => {
       const name = service.txt?.fn || service.name;
@@ -41,22 +42,46 @@ function getDevices() {
   return Object.values(discoveredDevices);
 }
 
+function stopCurrent() {
+  if (activePlayer) {
+    try { activePlayer.stop(() => {}); } catch {}
+    activePlayer = null;
+  }
+  if (activeClient) {
+    try { activeClient.close(); } catch {}
+    activeClient = null;
+  }
+  if (localPlaybackProcess) {
+    try { localPlaybackProcess.kill('SIGTERM'); } catch {}
+    localPlaybackProcess = null;
+  }
+}
+
+function isPlaying() {
+  return !!(activeClient || localPlaybackProcess);
+}
+
 function castAudio(deviceHost, devicePort, audioUrl, volume) {
+  stopCurrent();
   return new Promise((resolve, reject) => {
     const client = new Client();
+    activeClient = client;
     client.connect({ host: deviceHost, port: devicePort || 8009 }, () => {
       client.setVolume({ level: (volume || 80) / 100 }, () => {});
       client.launch(DefaultMediaReceiver, (err, player) => {
-        if (err) { client.close(); return reject(err); }
+        if (err) { client.close(); activeClient = null; return reject(err); }
+        activePlayer = player;
         const media = {
           contentId: audioUrl,
           contentType: 'audio/mpeg',
           streamType: 'BUFFERED',
         };
         player.load(media, { autoplay: true }, (err) => {
-          if (err) { client.close(); return reject(err); }
+          if (err) { client.close(); activeClient = null; activePlayer = null; return reject(err); }
           player.on('status', (status) => {
             if (status.playerState === 'IDLE') {
+              activeClient = null;
+              activePlayer = null;
               client.close();
               resolve();
             }
@@ -65,10 +90,21 @@ function castAudio(deviceHost, devicePort, audioUrl, volume) {
       });
     });
     client.on('error', (err) => {
+      activeClient = null;
+      activePlayer = null;
       client.close();
       reject(err);
     });
   });
 }
 
-module.exports = { startDiscovery, getDevices, castAudio, getLocalIP };
+function playLocal(audioPath) {
+  stopCurrent();
+  const { spawn } = require('child_process');
+  const proc = spawn('aplay', [audioPath]);
+  localPlaybackProcess = proc;
+  proc.on('close', () => { localPlaybackProcess = null; });
+  proc.on('error', () => { localPlaybackProcess = null; });
+}
+
+module.exports = { startDiscovery, getDevices, castAudio, playLocal, stopCurrent, isPlaying, getLocalIP };

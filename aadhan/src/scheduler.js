@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const path = require('path');
 const db = require('./db');
 const { getTodayTimes } = require('./prayerTimes');
-const { castAudio, getLocalIP } = require('./cast');
+const { castAudio, playLocal, stopCurrent, isPlaying, getLocalIP } = require('./cast');
 
 const AUDIO_DIR = path.join(__dirname, '..', 'audio');
 const PRESETS_DIR = path.join(AUDIO_DIR, 'presets');
@@ -18,12 +18,8 @@ function getPrayer(name) {
 }
 
 function resolveAudioPath(audioFile) {
-  if (audioFile === 'default' || !audioFile) {
-    return path.join(PRESETS_DIR, 'makkah.mp3');
-  }
-  if (audioFile.startsWith('preset:')) {
-    return path.join(PRESETS_DIR, audioFile.replace('preset:', '') + '.mp3');
-  }
+  if (audioFile === 'default' || !audioFile) return path.join(PRESETS_DIR, 'makkah.mp3');
+  if (audioFile.startsWith('preset:')) return path.join(PRESETS_DIR, audioFile.replace('preset:', '') + '.mp3');
   return path.join(AUDIO_DIR, 'uploads', audioFile);
 }
 
@@ -48,14 +44,16 @@ async function playAdhan(prayerName) {
       await castAudio(host, parseInt(devPort) || 8009, audioUrl, prayer.volume);
     } catch (e) {
       console.error(`[scheduler] Cast failed for ${prayerName}:`, e.message);
+      playLocal(audioPath);
     }
   } else {
-    // Local playback fallback via aplay (Linux/Pi)
-    const { exec } = require('child_process');
-    exec(`aplay "${audioPath}"`, (err) => {
-      if (err) console.error('[scheduler] Local playback error:', err.message);
-    });
+    playLocal(audioPath);
   }
+}
+
+function stopAdhan() {
+  stopCurrent();
+  console.log('[scheduler] Adhan stopped');
 }
 
 function clearJobs() {
@@ -65,21 +63,16 @@ function clearJobs() {
 
 function schedulePrayerAt(date, prayerName, preAlertMinutes) {
   const now = Date.now();
-
   const scheduleAt = (fireTime, label) => {
     const diff = fireTime - now;
     if (diff <= 0) return;
     const timeout = setTimeout(() => playAdhan(prayerName), diff);
     scheduledJobs.push({ stop: () => clearTimeout(timeout) });
-    const t = new Date(fireTime);
-    console.log(`[scheduler] ${label} scheduled at ${t.toLocaleTimeString()}`);
+    console.log(`[scheduler] ${label} scheduled at ${new Date(fireTime).toLocaleTimeString()}`);
   };
-
   scheduleAt(date.getTime(), prayerName);
-
   if (preAlertMinutes > 0) {
-    const preTime = date.getTime() - preAlertMinutes * 60 * 1000;
-    scheduleAt(preTime, `${prayerName} pre-alert`);
+    scheduleAt(date.getTime() - preAlertMinutes * 60 * 1000, `${prayerName} pre-alert`);
   }
 }
 
@@ -89,9 +82,7 @@ async function rescheduleAll() {
     const times = await getTodayTimes();
     for (const [name, date] of Object.entries(times)) {
       const prayer = getPrayer(name);
-      if (prayer) {
-        schedulePrayerAt(date, name, prayer.pre_alert || 0);
-      }
+      if (prayer) schedulePrayerAt(date, name, prayer.pre_alert || 0);
     }
     console.log('[scheduler] All prayers scheduled for today');
   } catch (e) {
@@ -100,11 +91,10 @@ async function rescheduleAll() {
 }
 
 function startMidnightReset() {
-  // Reschedule every day at midnight
   cron.schedule('0 0 * * *', () => {
     console.log('[scheduler] Midnight reset — rescheduling prayers');
     rescheduleAll();
   });
 }
 
-module.exports = { rescheduleAll, startMidnightReset, playAdhan };
+module.exports = { rescheduleAll, startMidnightReset, playAdhan, stopAdhan, isPlaying };
